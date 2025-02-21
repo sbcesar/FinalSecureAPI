@@ -1,10 +1,11 @@
 package com.example.finalsecure.api
 
+import retrofit2.Response
+import retrofit2.http.GET
+
 interface ApiService {
 
-    //Poner todos los endpoints de la api
-    /*
-    GET("/usuario/register")
-    fun register()
-     */
+    @GET("/")
+    fun getAllUsers() : Response<String>
+
 }
