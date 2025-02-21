@@ -60,7 +60,7 @@ class RegisterViewModel : ViewModel() {
                 usernameValue.isNotEmpty() && provinceValue.isNotEmpty() && municipalityValue.isNotEmpty()
     }
 
-    private fun isValidPassword(password: String): Boolean = password.length > 6
+    private fun isValidPassword(password: String): Boolean = password.length > 3
 
     fun delayed(action: () -> Unit) {
         viewModelScope.launch {

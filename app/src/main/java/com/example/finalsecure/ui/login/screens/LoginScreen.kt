@@ -1,6 +1,7 @@
 package com.example.finalsecure.ui.login.screens
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,11 +51,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.finalsecure.R
+import com.example.finalsecure.api.API.retrofitService
+import com.example.finalsecure.models.UsuarioLoginDTO
 import com.example.finalsecure.navigation.AppScreen
 import com.example.finalsecure.ui.login.viewmodel.LoginViewModel
 import com.example.finalsecure.ui.theme.BrilliantGray
 import com.example.finalsecure.ui.theme.SkyBlue
 import com.example.finalsecure.ui.theme.SoftBlue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,15 +128,17 @@ fun LoginContent(loginViewModel: LoginViewModel, navController: NavController) {
 
 @Composable
 fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
+
+    val context = LocalContext.current
+
+    val usernameText by loginViewModel.username.observeAsState("")
+    val passwordText by loginViewModel.password.observeAsState("")
+    val isPasswordVisible by loginViewModel.isPasswordVisible.observeAsState(false)
+    val isLoginEnabled by loginViewModel.loginEnabled.observeAsState(false)
+
     Surface(
         color = Color.White
     ) {
-
-        val emailText by loginViewModel.username.observeAsState("")
-        val passwordText by loginViewModel.password.observeAsState("")
-        val isPasswordVisible by loginViewModel.isPasswordVisible.observeAsState(false)
-        val isLoginEnabled by loginViewModel.loginEnabled.observeAsState(false)
-
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -139,7 +149,7 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
             RiotGamesLogo()
             Spacer(modifier = Modifier.height(30.dp))
             UsernameField(
-                value = emailText,
+                value = usernameText,
                 onChange = { loginViewModel.updateEmail(it) },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -155,10 +165,42 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
             LoginButton(
                 text = "LOG IN",
                 onClick = {
-                    loginViewModel.delayed {
-                        navController.navigate(
-                            route = AppScreen.HomeScreen.route
-                        )
+                    if (usernameText.isNotEmpty() && passwordText.isNotEmpty()) {
+                        // Ejecutamos la solicitud de inicio de sesión
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                // Realizar la solicitud a la API con los datos de inicio de sesión
+                                val usuarioLoginDTO = UsuarioLoginDTO(usernameText, passwordText)
+                                val result = retrofitService.login(usuarioLoginDTO)
+
+                                // Comprobamos si la respuesta fue exitosa
+                                if (result.isSuccessful) {
+                                    // Aquí manejamos la respuesta si la solicitud fue exitosa
+                                    // Por ejemplo, podemos obtener el usuario
+                                    val usuario = result.body()
+                                    // Realizamos la navegación solo si la autenticación es exitosa
+                                    withContext(Dispatchers.Main) {
+                                        loginViewModel.delayed {
+                                            navController.navigate(AppScreen.HomeScreen.route)
+                                        }
+                                    }
+                                } else {
+                                    // Aquí puedes manejar el error si la respuesta fue negativa
+                                    withContext(Dispatchers.Main) {
+                                        // Mostrar un mensaje de error
+                                        Toast.makeText(context, "Login failed: ${result.message()}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                // En caso de error en la llamada a la API, manejarlo
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    } else {
+                        // Mostrar un mensaje si los campos están vacíos
+                        Toast.makeText(context, "Por favor ingresa tu usuario y contraseña", Toast.LENGTH_SHORT).show()
                     }
                 },
                 containerColor = SkyBlue,
@@ -177,6 +219,7 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun RiotGamesLogo() {

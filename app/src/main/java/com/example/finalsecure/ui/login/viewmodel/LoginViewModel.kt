@@ -40,7 +40,7 @@ class LoginViewModel : ViewModel() {
         _loginEnabled.value = isValidPassword(passwordValue)
     }
 
-    private fun isValidPassword(password: String): Boolean = password.length > 6
+    private fun isValidPassword(password: String): Boolean = password.length > 3
 
     fun delayed(action: () -> Unit) {
         viewModelScope.launch {
