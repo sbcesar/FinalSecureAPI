@@ -53,7 +53,11 @@ class RegisterViewModel : ViewModel() {
     private fun validateRegister() {
         val passwordValue = _password.value ?: ""
         val passwordRepeatValue = _passwordRepeat.value ?: ""
-        _registerEnabled.value = isValidPassword(passwordValue) && passwordValue == passwordRepeatValue
+        val usernameValue = _username.value ?: ""
+        val provinceValue = _province.value ?: ""
+        val municipalityValue = _municipality.value ?: ""
+        _registerEnabled.value = isValidPassword(passwordValue) && passwordValue == passwordRepeatValue &&
+                usernameValue.isNotEmpty() && provinceValue.isNotEmpty() && municipalityValue.isNotEmpty()
     }
 
     private fun isValidPassword(password: String): Boolean = password.length > 6

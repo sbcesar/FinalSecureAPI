@@ -168,11 +168,9 @@ fun LoginScreen(loginViewModel: LoginViewModel, navController: NavController) {
             CreateAccount(
                 onLinkClick = {
                     loginViewModel.delayed {
-                        /*
                         navController.navigate(
-                            route = AppScreen.SecondScreen.route
+                            route = AppScreen.RegisterScreen.route
                         )
-                         */
                     }
                 }
             )
